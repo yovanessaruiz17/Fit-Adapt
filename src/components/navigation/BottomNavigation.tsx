@@ -38,13 +38,13 @@ export function BottomNavigation({ activeView, onViewChange }: BottomNavigationP
               key={tab.id}
               id={`tab-btn-${tab.id.toLowerCase()}`}
               onClick={() => onViewChange(tab.id)}
-              className="relative flex flex-col items-center justify-center min-h-[44px] cursor-pointer select-none group text-zinc-500 dark:text-zinc-400 focus-visible:outline-none"
+              className="relative flex flex-col items-center justify-center min-h-[48px] min-w-0 px-0.5 cursor-pointer select-none group text-zinc-500 dark:text-zinc-400 focus-visible:outline-none"
             >
               {/* Indicador activo sutil */}
               {isActive && (
                 <motion.div
                   layoutId="activeTabPill"
-                  className="absolute top-1.5 w-8 h-1 rounded-full bg-teal-600 dark:bg-teal-400"
+                  className="absolute top-1 w-6 sm:w-8 h-1 rounded-full bg-teal-600 dark:bg-teal-400"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
@@ -52,7 +52,7 @@ export function BottomNavigation({ activeView, onViewChange }: BottomNavigationP
               <div
                 className={`transition-all duration-150 mt-1 ${
                   isActive
-                    ? 'text-teal-600 dark:text-teal-400 scale-110'
+                    ? 'text-teal-600 dark:text-teal-400 scale-105'
                     : 'group-hover:text-zinc-700 dark:group-hover:text-zinc-200'
                 }`}
               >
@@ -60,7 +60,7 @@ export function BottomNavigation({ activeView, onViewChange }: BottomNavigationP
               </div>
 
               <span
-                className={`text-[10px] font-semibold mt-0.5 tracking-tight transition-colors ${
+                className={`text-[10px] font-semibold mt-0.5 tracking-tight transition-colors truncate max-w-full ${
                   isActive
                     ? 'text-teal-700 dark:text-teal-300'
                     : 'text-zinc-500 dark:text-zinc-400'

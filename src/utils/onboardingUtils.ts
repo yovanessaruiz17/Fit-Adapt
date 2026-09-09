@@ -25,9 +25,12 @@ import {
 
 export const ONBOARDING_DRAFT_STORAGE_KEY = 'fitadapt_onboarding_draft';
 export const USER_PROFILE_STORAGE_KEY = 'fitadapt_user_profile';
+export const ONBOARDING_COMPLETED_STORAGE_KEY = 'fitadapt_onboarding_completed';
 
 export const INITIAL_ONBOARDING_DATA: OnboardingData = {
-  hasAcceptedTerms: true,
+  hasAcceptedPrivacyPolicy: false,
+  hasAcceptedHealthDataProcessing: false,
+  hasAcceptedTerms: false,
   name: '',
   age: '',
   sex: '',
@@ -45,6 +48,30 @@ export const INITIAL_ONBOARDING_DATA: OnboardingData = {
   limitations: [],
   medicalClearanceAcknowledged: false,
 };
+
+/**
+ * Comprueba si el usuario ya ha completado el onboarding inicial
+ */
+export function hasUserCompletedOnboarding(): boolean {
+  try {
+    const profile = loadUserProfileFromStorage();
+    const flag = localStorage.getItem(ONBOARDING_COMPLETED_STORAGE_KEY);
+    return Boolean(profile && flag === 'true');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Registra que el onboarding inicial ha sido completado con éxito
+ */
+export function markOnboardingCompleted(): void {
+  try {
+    localStorage.setItem(ONBOARDING_COMPLETED_STORAGE_KEY, 'true');
+  } catch (err) {
+    console.warn('No se pudo marcar onboarding como completado:', err);
+  }
+}
 
 /**
  * Guarda el progreso del onboarding en localStorage
@@ -294,7 +321,25 @@ export function validateOnboardingStep(
 ): { isValid: boolean; error?: string } {
   switch (step) {
     case 1:
-      // Bienvenida: siempre válido para comenzar
+      // Paso 1: Bienvenida y Consentimiento de Políticas de Protección de Datos
+      if (!data.hasAcceptedPrivacyPolicy) {
+        return {
+          isValid: false,
+          error: 'Debes leer y aceptar la Política de Protección de Datos Personales para almacenar tu perfil en este dispositivo.',
+        };
+      }
+      if (!data.hasAcceptedHealthDataProcessing) {
+        return {
+          isValid: false,
+          error: 'Debes autorizar el tratamiento de tus datos físicos y articulares para la calibración biomecánica de tus rutinas.',
+        };
+      }
+      if (!data.hasAcceptedTerms) {
+        return {
+          isValid: false,
+          error: 'Debes aceptar los Términos de Uso y el alcance informativo no clínico de FitAdapt para continuar.',
+        };
+      }
       return { isValid: true };
 
     case 2: {

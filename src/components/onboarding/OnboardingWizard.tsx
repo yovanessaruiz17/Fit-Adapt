@@ -41,27 +41,35 @@ import {
   validateOnboardingStep,
 } from '../../utils/onboardingUtils';
 
+import { LegalModal } from '../legal/LegalModal';
+
 export interface OnboardingWizardProps {
   onComplete: (profile: UserProfile) => void;
   onCancel?: () => void;
   initialProfile?: UserProfile;
+  isFirstTime?: boolean;
 }
 
 export function OnboardingWizard({
   onComplete,
   onCancel,
   initialProfile,
+  isFirstTime = false,
 }: OnboardingWizardProps) {
   // Cargar estado inicial desde borrador si existe, o prellenar con initialProfile
   const [currentStep, setCurrentStep] = useState<OnboardingStepNumber>(1);
+  const [showLegalInOnboarding, setShowLegalInOnboarding] = useState(false);
   const [data, setData] = useState<OnboardingData>(() => {
     const saved = loadOnboardingDraft();
     if (saved) {
       return saved.data;
     }
-    if (initialProfile) {
+    if (initialProfile && !isFirstTime) {
       return {
         ...INITIAL_ONBOARDING_DATA,
+        hasAcceptedPrivacyPolicy: true,
+        hasAcceptedHealthDataProcessing: true,
+        hasAcceptedTerms: true,
         name: initialProfile.name || '',
         age: initialProfile.age || '',
         sex: initialProfile.sex || '',
@@ -158,8 +166,8 @@ export function OnboardingWizard({
     { title: string; subtitle: string }
   > = {
     1: {
-      title: 'Bienvenido a FitAdapt',
-      subtitle: 'Configura tu entrenamiento adaptativo en 10 pasos sencillos diseñados para tu salud biomecánica.',
+      title: 'Bienvenido y Protección de Datos Personales',
+      subtitle: 'Acepta las políticas de privacidad y autoriza el tratamiento de datos antes de ingresar tu información.',
     },
     2: {
       title: 'Información Básica',
@@ -320,26 +328,44 @@ export function OnboardingWizard({
 
   const currentMeta = stepsMetadata[currentStep];
 
+  const isStep1Blocked =
+    currentStep === 1 &&
+    (!data.hasAcceptedPrivacyPolicy ||
+      !data.hasAcceptedHealthDataProcessing ||
+      !data.hasAcceptedTerms);
+
   return (
-    <OnboardingLayout
-      currentStep={currentStep}
-      totalSteps={10}
-      stepTitle={currentMeta.title}
-      stepSubtitle={currentMeta.subtitle}
-      errorMessage={errorMessage}
-      onNext={handleNext}
-      onPrev={handlePrev}
-      onCancel={onCancel}
-      isSubmitting={isSubmitting}
-      nextButtonLabel={
-        currentStep === 1
-          ? 'Comenzar Configuración'
-          : currentStep === 10
-          ? 'Finalizar y Comenzar'
-          : 'Continuar'
-      }
-    >
-      {currentStep === 1 && <Step1Welcome onStart={handleNext} />}
+    <>
+      <OnboardingLayout
+        currentStep={currentStep}
+        totalSteps={10}
+        stepTitle={currentMeta.title}
+        stepSubtitle={currentMeta.subtitle}
+        errorMessage={errorMessage}
+        onNext={handleNext}
+        onPrev={handlePrev}
+        onCancel={onCancel}
+        isNextDisabled={isStep1Blocked}
+        isSubmitting={isSubmitting}
+        nextButtonLabel={
+          currentStep === 1
+            ? 'Aceptar y Continuar a Información Básica'
+            : currentStep === 10
+            ? 'Finalizar y Comenzar'
+            : 'Continuar'
+        }
+      >
+        {currentStep === 1 && (
+          <Step1Welcome
+            data={data}
+            onChange={(updates) => {
+              setData((prev) => ({ ...prev, ...updates }));
+              if (errorMessage) setErrorMessage(undefined);
+            }}
+            onOpenLegalModal={() => setShowLegalInOnboarding(true)}
+            onStart={handleNext}
+          />
+        )}
 
       {currentStep === 2 && (
         <Step2BasicInfo
@@ -416,5 +442,14 @@ export function OnboardingWizard({
         />
       )}
     </OnboardingLayout>
-  );
+
+    {showLegalInOnboarding && (
+      <LegalModal
+        isOpen={showLegalInOnboarding}
+        onClose={() => setShowLegalInOnboarding(false)}
+        defaultTab="privacy"
+      />
+    )}
+  </>
+);
 }

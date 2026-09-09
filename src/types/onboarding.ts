@@ -40,8 +40,10 @@ export type WorkoutDurationOption = 15 | 20 | 30 | 45 | 60;
 export type PreferredIntensityOption = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface OnboardingData {
-  // Paso 1: Bienvenida (consentimiento inicial)
-  hasAcceptedTerms: boolean;
+  // Paso 1: Bienvenida y Consentimiento de Políticas de Datos Personales
+  hasAcceptedPrivacyPolicy: boolean; // Política de Protección de Datos Personales y almacenamiento local
+  hasAcceptedHealthDataProcessing: boolean; // Consentimiento expreso para datos físicos y biomecánicos
+  hasAcceptedTerms: boolean; // Términos de uso y alcance orientativo no médico
 
   // Paso 2: Información básica
   name: string;

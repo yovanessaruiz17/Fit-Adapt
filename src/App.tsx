@@ -37,9 +37,14 @@ import { LegalModal } from './components/legal/LegalModal';
 import { SyncManager } from './core/sync/syncManager';
 import { AnalyticsService } from './core/analytics/analytics';
 
-// Onboarding FASE 3
+// Onboarding FASE 3 y FASE 10
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
-import { loadUserProfileFromStorage, saveUserProfileToStorage } from './utils/onboardingUtils';
+import {
+  loadUserProfileFromStorage,
+  saveUserProfileToStorage,
+  hasUserCompletedOnboarding,
+  markOnboardingCompleted,
+} from './utils/onboardingUtils';
 
 // Componentes de la Consola de Arquitectura (FASE 1)
 import { ArchitectureHeader } from './components/ArchitectureHeader';
@@ -50,20 +55,37 @@ import { DataModelExplorer } from './components/DataModelExplorer';
 import { PhaseRoadmapViewer } from './components/PhaseRoadmapViewer';
 
 function FitAdaptApp() {
-  // Estado de navegación activa
-  const [activeView, setActiveView] = useState<AppView>('HOME');
+  // Comprobar si el usuario ya ha completado el onboarding inicial
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean>(() => {
+    return hasUserCompletedOnboarding();
+  });
 
-  // Estado del perfil activo (cargado desde localStorage si existe, o perfil de muestra)
+  // Estado de navegación activa: si es su primera vez, entra obligatoriamente a ONBOARDING
+  const [activeView, setActiveView] = useState<AppView>(() => {
+    const isCompleted = hasUserCompletedOnboarding();
+    return isCompleted ? 'HOME' : 'ONBOARDING';
+  });
+
+  // Estado del perfil activo (cargado desde localStorage si existe, o perfil de muestra si ya completó)
   const [currentUser, setCurrentUser] = useState<UserProfile>(() => {
     const saved = loadUserProfileFromStorage();
     if (saved) return saved;
     return SAMPLE_USER_PROFILES.profileKneeSensitivity || SAMPLE_PROFILES[0];
   });
 
-  // Guardar perfil cuando se actualiza
+  // Guardar perfil cuando se actualiza y recalcular rutina reactivamente
   const handleUpdateUser = (updated: UserProfile) => {
     setCurrentUser(updated);
     saveUserProfileToStorage(updated);
+    try {
+      const generated = WorkoutGenerator.generate({
+        userProfile: updated,
+        seed: Date.now(),
+      }).workout;
+      setActiveWorkout(generated);
+    } catch (e) {
+      console.warn('Error al recalcular rutina adaptada:', e);
+    }
   };
 
   // Rutina activa gestionada reactivamente (permite aplicar ajustes y alternativas desde FitAdapt AI)
@@ -93,24 +115,28 @@ function FitAdaptApp() {
   if (activeView === 'ONBOARDING') {
     return (
       <OnboardingWizard
-        initialProfile={currentUser}
+        initialProfile={hasCompletedOnboarding ? currentUser : undefined}
+        isFirstTime={!hasCompletedOnboarding}
         onComplete={(newProfile) => {
           handleUpdateUser(newProfile);
+          markOnboardingCompleted();
+          setHasCompletedOnboarding(true);
           AnalyticsService.logEvent('onboarding_completed', { goal: newProfile.primaryGoal });
           setActiveView('HOME');
         }}
-        onCancel={() => setActiveView('HOME')}
+        onCancel={hasCompletedOnboarding ? () => setActiveView('HOME') : undefined}
       />
     );
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors">
-      {/* Barra de Navegación Superior */}
+      {/* Barra de Navegación Superior Responsive */}
       <TopNavigation
         activeView={activeView}
         onViewChange={setActiveView}
         userName={currentUser?.name || 'Ana'}
+        onOpenLegal={() => setShowLegalModal(true)}
       />
 
       {/* Contenido Principal */}
