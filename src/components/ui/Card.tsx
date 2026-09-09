@@ -6,6 +6,7 @@
 import React from 'react';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  id?: string;
   children?: React.ReactNode;
   className?: string;
   interactive?: boolean;

@@ -255,7 +255,7 @@ export function WorkoutView({
       {/* RENDERIZADO: PESTAÑA CATÁLOGO */}
       {activeTab === 'CATALOG' && (
         <div className="space-y-6">
-          <ExerciseLibraryExplorer userProfile={user} />
+          <ExerciseLibraryExplorer />
         </div>
       )}
 

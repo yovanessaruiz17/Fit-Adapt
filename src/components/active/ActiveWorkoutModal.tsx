@@ -456,7 +456,9 @@ export function ActiveWorkoutModal({
                   Objetivo de Repeticiones
                 </span>
                 <div className="text-4xl sm:text-5xl font-black text-teal-400 font-mono">
-                  {currentItem.targetReps || 12}
+                  {typeof currentItem.targetReps === 'object' && currentItem.targetReps !== null
+                    ? `${(currentItem.targetReps as { min: number; max: number }).min} - ${(currentItem.targetReps as { min: number; max: number }).max}`
+                    : String(currentItem.targetReps || 12)}
                 </div>
                 <p className="text-xs text-zinc-400">
                   Rango objetivo para la serie {currentSetIndex} de {totalSetsForCurrent}

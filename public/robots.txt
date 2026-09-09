@@ -1,0 +1,6 @@
+# FitAdapt robots.txt
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://fitadapt.app/sitemap.xml

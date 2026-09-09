@@ -247,13 +247,24 @@ export class FallbackAssistant {
     ) {
       if (workout) {
         const exercisesList = workout.exercises
-          .map((e, idx) => `${idx + 1}. **${e.exerciseSnapshot.name}** (${e.sets} series x ${e.repsOrDuration}, descanso ${e.rest}s)`)
+          .map(
+            (e, idx) =>
+              `${idx + 1}. **${e.exerciseSnapshot.name}** (${e.sets} series x ${
+                e.reps ? `${e.reps} reps` : `${e.duration || 30}s`
+              }, descanso ${e.rest}s)`
+          )
           .join('\n');
+
+        const activeNotes =
+          workout.exercises
+            .filter((e) => e.wasAdapted && e.modification)
+            .map((e) => `${e.exerciseSnapshot.name}: ${e.modification}`)
+            .join(', ') || 'Alineada con tu perfil articular';
 
         return {
           id: messageId,
           role: 'assistant',
-          content: `Tu sesión de hoy es **"${workout.title}"** con una duración estimada de **${workout.estimatedDurationMinutes} minutos**.\n\n🎯 **Objetivo**: ${workout.goal}\n🛡️ **Adaptaciones activas**: ${workout.adaptationNotes?.join(', ') || 'Alineada con tu perfil articular'}\n\n**Estructura de la sesión**:\n${exercisesList}\n\n¿Quieres que adaptemos la duración, cambiemos algún ejercicio o te explique la técnica de alguno de ellos?`,
+          content: `Tu sesión de hoy es **"${workout.title}"** con una duración estimada de **${workout.estimatedDurationMinutes} minutos**.\n\n🎯 **Objetivo**: ${workout.goal}\n🛡️ **Adaptaciones activas**: ${activeNotes}\n\n**Estructura de la sesión**:\n${exercisesList}\n\n¿Quieres que adaptemos la duración, cambiemos algún ejercicio o te explique la técnica de alguno de ellos?`,
           timestamp,
           isFallback: true,
           sourceTool: 'get_current_workout',

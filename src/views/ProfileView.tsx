@@ -52,6 +52,12 @@ import {
 } from '../constants/fitness';
 import { MEDICAL_DISCLAIMER_TEXT } from '../constants/safety';
 import { SAMPLE_PROFILES } from '../data/sampleProfiles';
+import { NotificationSettingsModal } from '../components/notifications/NotificationSettingsModal';
+import { LegalModal } from '../components/legal/LegalModal';
+import { ProductionTestModal } from '../components/testing/ProductionTestModal';
+import { PWAInstallPrompt } from '../components/pwa/PWAInstallPrompt';
+import { SyncManager } from '../core/sync/syncManager';
+import { Bell, ShieldCheck, Award, Smartphone, Wifi, WifiOff } from 'lucide-react';
 
 export interface ProfileViewProps {
   user: UserProfile;
@@ -60,7 +66,7 @@ export interface ProfileViewProps {
   onOpenOnboarding?: () => void;
 }
 
-type ProfileTab = 'DETAILS' | 'GOALS' | 'LOCATION_EQUIPMENT' | 'AVAILABILITY' | 'LIMITATIONS' | 'SAFETY';
+type ProfileTab = 'DETAILS' | 'GOALS' | 'LOCATION_EQUIPMENT' | 'AVAILABILITY' | 'LIMITATIONS' | 'SAFETY' | 'SETTINGS_PRODUCTION';
 
 export function ProfileView({
   user,
@@ -70,6 +76,10 @@ export function ProfileView({
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<ProfileTab>('DETAILS');
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showNotificationModal, setShowNotificationModal] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+  const [showTestModal, setShowTestModal] = useState(false);
+  const syncStatus = SyncManager.getStatus();
 
   // Handlers para actualizar datos
   const handleGoalChange = (newGoal: FitnessGoal) => {
@@ -246,6 +256,7 @@ export function ProfileView({
           { id: 'AVAILABILITY', label: 'Disponibilidad' },
           { id: 'LIMITATIONS', label: 'Limitaciones y Molestias' },
           { id: 'SAFETY', label: 'Salud y Ética' },
+          { id: 'SETTINGS_PRODUCTION', label: 'PWA, Privacidad y Pruebas' },
         ].map((tab) => (
           <button
             key={tab.id}
@@ -654,6 +665,130 @@ export function ProfileView({
           </div>
         </div>
       )}
+
+      {/* Tab 7: PWA, Privacidad y Pruebas (FASE 10) */}
+      {activeTab === 'SETTINGS_PRODUCTION' && (
+        <div className="space-y-4 animate-fadeIn">
+          {/* Card de Instalación PWA */}
+          <PWAInstallPrompt variant="card" />
+
+          {/* Grid de Controles de Producción */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Control de Notificaciones */}
+            <Card elevation="flat" className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Notificaciones</h4>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Recordatorios respetuosos</span>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Horario silencioso automático (22:00 a 08:00) y limitación estricta de frecuencia.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowNotificationModal(true)}
+                className="w-full text-xs"
+              >
+                Configurar Notificaciones
+              </Button>
+            </Card>
+
+            {/* Privacidad, Descargo y Datos */}
+            <Card elevation="flat" className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Privacidad y Salud</h4>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400">Transparencia y control</span>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Aviso médico, política local-first, exportación JSON y derecho al olvido.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowLegalModal(true)}
+                className="w-full text-xs"
+              >
+                Ver Términos y Datos
+              </Button>
+            </Card>
+
+            {/* Auditoría de Producción FASE 10 */}
+            <Card elevation="flat" className="space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">Auditoría FASE 10</h4>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400">15 pruebas automáticas</span>
+                </div>
+              </div>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Verifica compatibilidad, generación, offline sync, PWA y accesibilidad.
+              </p>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setShowTestModal(true)}
+                className="w-full text-xs"
+              >
+                Ejecutar Suite de Pruebas
+              </Button>
+            </Card>
+          </div>
+
+          {/* Estado de Sincronización y Caché Offline */}
+          <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-850/60 border border-zinc-200 dark:border-zinc-750 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 flex items-center justify-center shrink-0">
+                <Smartphone className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="font-bold text-zinc-800 dark:text-zinc-200 block">
+                  Caché Local Offline & Sincronización
+                </span>
+                <span className="text-zinc-500 dark:text-zinc-400 text-[11px]">
+                  {syncStatus.pendingCount === 0
+                    ? 'Todo tu progreso y rutinas están respaldados en tu dispositivo.'
+                    : `${syncStatus.pendingCount} operaciones pendientes de sincronización.`}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant={syncStatus.isOnline ? 'teal' : 'warning'}>
+                {syncStatus.isOnline ? 'Conectado a Internet' : 'Modo Offline Activo'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modales de FASE 10 */}
+      <NotificationSettingsModal
+        isOpen={showNotificationModal}
+        onClose={() => setShowNotificationModal(false)}
+      />
+
+      <LegalModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+        onResetAllData={() => window.location.reload()}
+      />
+
+      <ProductionTestModal
+        isOpen={showTestModal}
+        onClose={() => setShowTestModal(false)}
+      />
     </div>
   );
 }

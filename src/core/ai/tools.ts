@@ -19,8 +19,8 @@ import { EXERCISE_LIBRARY, getExerciseById } from '../../data/exerciseLibrary';
 import { AlternativeFinder } from '../compatibility/alternatives';
 import { CompatibilityEngine } from '../compatibility/evaluator';
 import { WorkoutAdjuster } from '../generator/workoutAdjuster';
-import { ProgressStorageManager } from '../progress/progressStorage';
-import { StructuredToolName, StructuredToolResult, AIActionPayload } from './types';
+import { ProgressManager } from '../progress/progressManager';
+import { StructuredToolName, StructuredToolResult, AIActionPayload, AIActionType } from './types';
 
 export class AIToolsExecutor {
   /**
@@ -50,7 +50,7 @@ export class AIToolsExecutor {
           name: e.exerciseSnapshot.name,
           section: e.section,
           sets: e.sets,
-          repsOrDuration: e.repsOrDuration,
+          repsOrDuration: e.reps ? `${e.reps} reps` : `${e.duration || 30}s`,
           rest: `${e.rest}s`,
           targetMuscle: e.exerciseSnapshot.primaryMuscle,
         })),
@@ -69,15 +69,15 @@ export class AIToolsExecutor {
       data: {
         primaryGoal: user.primaryGoal,
         fitnessLevel: user.fitnessLevel,
-        location: user.location,
+        location: user.trainingLocation,
         equipment: user.availableEquipment || [],
         limitations: (user.limitations || []).map((l) => ({
-          area: l.area,
+          area: l.name || l.category,
           code: l.code,
           requiresLowImpact: l.requiresLowImpact,
         })),
       },
-      message: `Perfil: Nivel ${user.fitnessLevel}, Objetivo: ${user.primaryGoal}, Ubicación: ${user.location}.`,
+      message: `Perfil: Nivel ${user.fitnessLevel}, Objetivo: ${user.primaryGoal}, Ubicación: ${user.trainingLocation}.`,
     };
   }
 
@@ -144,12 +144,12 @@ export class AIToolsExecutor {
     // 3. Verificación de seguridad adicional con CompatibilityEngine si la alternativa tiene ficha
     if (alternative.exercise) {
       const evalResult = CompatibilityEngine.evaluate(alternative.exercise, user, EXERCISE_LIBRARY);
-      if (evalResult.score < 50) {
+      if (evalResult.overallScore < 50) {
         return {
           tool: 'find_alternative_exercise',
           success: false,
           data: null,
-          message: `Se encontró una alternativa pero el Compatibility Engine determinó que su compatibilidad (${evalResult.score}%) no es segura para tu perfil.`,
+          message: `Se encontró una alternativa pero el Compatibility Engine determinó que su compatibilidad (${evalResult.overallScore}%) no es segura para tu perfil.`,
         };
       }
     }
@@ -277,13 +277,13 @@ export class AIToolsExecutor {
       category: exercise.category,
       impactLevel: exercise.impactLevel,
       description: exercise.description,
-      instructions: exercise.instructions || [
+      instructions: exercise.instructions?.map((s) => `${s.stepNumber}. ${s.title}: ${s.description}`) || [
         '1. Posición inicial con postura alineada y abdomen activo.',
         '2. Ejecuta el movimiento controlando la fase excéntrica.',
         '3. Exhala en el punto de mayor esfuerzo.',
         '4. Mantén articulaciones estables sin bloquear bruscamente.',
       ],
-      safetyNotes: exercise.safetyNotes || 'Prioriza siempre la técnica sobre la velocidad o la carga.',
+      safetyNotes: exercise.warningNotes || 'Prioriza siempre la técnica sobre la velocidad o la carga.',
       lowImpactAlternative: exercise.lowImpactAlternative?.name,
     };
 
@@ -304,20 +304,20 @@ export class AIToolsExecutor {
   /**
    * 7. get_progress_summary: Resume constancia, racha y volumen
    */
-  public static getProgressSummary(): StructuredToolResult {
-    const stats = ProgressStorageManager.getStats();
+  public static getProgressSummary(user?: UserProfile): StructuredToolResult {
+    const stats = ProgressManager.getDashboardSummary(user?.daysPerWeek || 3, user?.primaryGoal);
     return {
       tool: 'get_progress_summary',
       success: true,
       data: {
         totalWorkoutsCompleted: stats.totalWorkoutsCompleted,
         totalMinutesTrained: stats.totalMinutesTrained,
-        currentStreakDays: stats.currentStreakDays,
-        bestStreakDays: stats.bestStreakDays,
+        currentStreakDays: stats.currentStreak,
+        bestStreakDays: stats.longestStreak,
         sessionsThisWeek: stats.sessionsThisWeek,
-        weeklyGoalTarget: stats.weeklyGoalTarget,
+        compliancePercentage: stats.compliancePercentage,
       },
-      message: `Progreso: ${stats.totalWorkoutsCompleted} sesiones completadas, ${stats.totalMinutesTrained} minutos acumulados, racha actual de ${stats.currentStreakDays} días.`,
+      message: `Progreso: ${stats.totalWorkoutsCompleted} sesiones completadas, ${stats.totalMinutesTrained} minutos acumulados, racha actual de ${stats.currentStreak} días.`,
     };
   }
 }

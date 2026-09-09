@@ -11,8 +11,35 @@
   color-scheme: dark;
 }
 
-/* Accessible focus ring utility */
+/* Accessible focus ring utility adhering to WCAG 2.1 AA */
 *:focus-visible {
-  outline: 2px solid #0d9488;
-  outline-offset: 2px;
+  outline: 2px solid #0d9488 !important;
+  outline-offset: 2px !important;
+}
+
+/* Reduced motion preference respect */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* iOS PWA Safe Area insets */
+.safe-top {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+/* Smooth touch manipulation without double-tap delay */
+html, body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }

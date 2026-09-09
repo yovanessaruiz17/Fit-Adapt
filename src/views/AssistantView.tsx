@@ -19,6 +19,7 @@ import {
 import { UserProfile } from '../types/user';
 import { Workout } from '../types/workout';
 import { AIActionPayload } from '../core/ai/types';
+import { WorkoutAdjuster } from '../core/generator/workoutAdjuster';
 import { FitAdaptAIChat } from '../components/ai/FitAdaptAIChat';
 import { AIPrivacyModal } from '../components/ai/AIPrivacyModal';
 import { AITestSuiteModal } from '../components/ai/AITestSuiteModal';
@@ -29,18 +30,48 @@ import { Button } from '../components/ui/Button';
 export interface AssistantViewProps {
   user: UserProfile;
   workout?: Workout | null;
-  onApplyWorkoutChange?: (action: AIActionPayload) => void;
+  activeWorkout?: Workout | null;
+  onApplyWorkoutChange?: (newWorkout: Workout) => void;
   onNavigateToWorkout?: () => void;
+  onNavigate?: (view: any) => void;
 }
 
 export function AssistantView({
   user,
   workout,
+  activeWorkout,
   onApplyWorkoutChange,
   onNavigateToWorkout,
+  onNavigate,
 }: AssistantViewProps) {
+  const currentWorkout = workout || activeWorkout;
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [isTestSuiteOpen, setIsTestSuiteOpen] = useState(false);
+
+  const handleActionFromChat = (action: AIActionPayload) => {
+    if (!currentWorkout) return;
+    let modified = currentWorkout;
+    if (action.type === 'CHANGE_DURATION' && action.targetDurationMinutes) {
+      modified = WorkoutAdjuster.changeDuration(currentWorkout, action.targetDurationMinutes, user);
+    } else if (action.type === 'MAKE_EASIER') {
+      modified = WorkoutAdjuster.makeEasier(currentWorkout, user);
+    } else if (action.type === 'MAKE_HARDER') {
+      modified = WorkoutAdjuster.makeMoreIntense(currentWorkout, user);
+    } else if (action.type === 'SUBSTITUTE_EXERCISE' && action.exerciseId) {
+      modified = WorkoutAdjuster.substituteExercise(currentWorkout, action.exerciseId, user);
+    }
+    if (onApplyWorkoutChange) {
+      onApplyWorkoutChange(modified);
+    }
+  };
+
+  const handleGoToWorkout = () => {
+    if (onNavigateToWorkout) {
+      onNavigateToWorkout();
+    } else if (onNavigate) {
+      onNavigate('WORKOUT');
+    }
+  };
 
   return (
     <div id="assistant-view-container" className="space-y-6 animate-fadeIn max-w-5xl mx-auto">
@@ -92,8 +123,8 @@ export function AssistantView({
         <div className="lg:col-span-8">
           <FitAdaptAIChat
             user={user}
-            workout={workout}
-            onApplyWorkoutChange={onApplyWorkoutChange}
+            workout={currentWorkout}
+            onApplyWorkoutChange={handleActionFromChat}
           />
         </div>
 
@@ -144,28 +175,28 @@ export function AssistantView({
                   Rutina en Contexto
                 </h4>
               </div>
-              {workout && (
-                <Badge variant="teal">{workout.estimatedDurationMinutes} min</Badge>
+              {currentWorkout && (
+                <Badge variant="teal">{currentWorkout.estimatedDurationMinutes} min</Badge>
               )}
             </div>
 
-            {workout ? (
+            {currentWorkout ? (
               <div className="space-y-2 text-xs">
                 <div className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700/80">
                   <span className="font-bold text-zinc-900 dark:text-zinc-100 block">
-                    {workout.title}
+                    {currentWorkout.title}
                   </span>
                   <span className="text-[11px] text-zinc-500 dark:text-zinc-400">
-                    {workout.exercises.length} ejercicios planificados • Nivel {workout.fitnessLevel}
+                    {currentWorkout.exercises.length} ejercicios planificados • Nivel {currentWorkout.fitnessLevel}
                   </span>
                 </div>
 
                 <div className="flex gap-2">
-                  {onNavigateToWorkout && (
+                  {(onNavigateToWorkout || onNavigate) && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={onNavigateToWorkout}
+                      onClick={handleGoToWorkout}
                       className="w-full text-xs"
                     >
                       Ver Rutina Completa

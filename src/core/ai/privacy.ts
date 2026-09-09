@@ -11,7 +11,7 @@
 import { UserProfile } from '../../types/user';
 import { Workout } from '../../types/workout';
 import { AIPrivacySettings, SanitizedAIContext, DEFAULT_AI_PRIVACY_SETTINGS } from './types';
-import { ProgressStorageManager } from '../progress/progressStorage';
+import { ProgressManager } from '../progress/progressManager';
 
 const AI_PRIVACY_KEY = 'fitadapt_ai_privacy_settings_v1';
 
@@ -64,13 +64,13 @@ export class AIPrivacyManager {
       }
 
       if (privacy.shareEquipmentAndLocation) {
-        context.user.trainingLocation = user.location;
+        context.user.trainingLocation = user.trainingLocation;
         context.user.availableEquipment = user.availableEquipment || [];
       }
 
       if (privacy.shareLimitations) {
         context.user.declaredLimitations = (user.limitations || []).map(
-          (l) => `${l.area} (${l.code})${l.requiresLowImpact ? ' [Requiere bajo impacto]' : ''}`
+          (l) => `${l.name || l.category} (${l.code})${l.requiresLowImpact ? ' [Requiere bajo impacto]' : ''}`
         );
       }
     }
@@ -89,7 +89,7 @@ export class AIPrivacyManager {
           name: e.exerciseSnapshot.name,
           section: e.section,
           sets: e.sets,
-          repsOrDuration: e.repsOrDuration,
+          repsOrDuration: e.reps ? `${e.reps} reps` : `${e.duration || 30}s`,
           bodyArea: e.exerciseSnapshot.bodyArea,
           category: e.exerciseSnapshot.category,
           equipment: e.exerciseSnapshot.equipment,
@@ -100,11 +100,11 @@ export class AIPrivacyManager {
     // 3. Resumen básico de constancia (sin datos de peso ni medidas corporales privadas)
     if (privacy.shareProgressStats) {
       try {
-        const stats = ProgressStorageManager.getStats();
+        const stats = ProgressManager.getDashboardSummary(user.daysPerWeek || 3, user.primaryGoal);
         context.progressSummary = {
           completedWorkouts: stats.totalWorkoutsCompleted,
           totalMinutes: stats.totalMinutesTrained,
-          currentStreakDays: stats.currentStreakDays,
+          currentStreakDays: stats.currentStreak,
           weeklySessions: stats.sessionsThisWeek,
         };
       } catch {

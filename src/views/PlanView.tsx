@@ -219,7 +219,7 @@ export function PlanView({ user, onStartWorkout }: PlanViewProps) {
                   </strong>
                   <ul className="space-y-0.5 text-zinc-500 dark:text-zinc-400">
                     {selectedWorkout.warmup.map((ex, i) => (
-                      <li key={i} className="truncate">• {ex.exerciseName}</li>
+                      <li key={i} className="truncate">• {ex.exerciseSnapshot?.name || ex.exerciseId}</li>
                     ))}
                   </ul>
                 </div>
@@ -230,7 +230,7 @@ export function PlanView({ user, onStartWorkout }: PlanViewProps) {
                   </strong>
                   <ul className="space-y-0.5 text-zinc-500 dark:text-zinc-400">
                     {selectedWorkout.mainWorkout.map((ex, i) => (
-                      <li key={i} className="truncate">• {ex.exerciseName}</li>
+                      <li key={i} className="truncate">• {ex.exerciseSnapshot?.name || ex.exerciseId}</li>
                     ))}
                   </ul>
                 </div>
@@ -241,7 +241,7 @@ export function PlanView({ user, onStartWorkout }: PlanViewProps) {
                   </strong>
                   <ul className="space-y-0.5 text-zinc-500 dark:text-zinc-400">
                     {selectedWorkout.cooldown.map((ex, i) => (
-                      <li key={i} className="truncate">• {ex.exerciseName}</li>
+                      <li key={i} className="truncate">• {ex.exerciseSnapshot?.name || ex.exerciseId}</li>
                     ))}
                   </ul>
                 </div>
@@ -262,7 +262,7 @@ export function PlanView({ user, onStartWorkout }: PlanViewProps) {
 
       {/* PESTAÑA: BIBLIOTECA */}
       {activeTab === 'LIBRARY' && (
-        <ExerciseLibraryExplorer userProfile={user} />
+        <ExerciseLibraryExplorer />
       )}
 
       {/* MODAL DE ENTRENAMIENTO ACTIVO */}

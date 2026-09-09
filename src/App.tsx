@@ -19,15 +19,23 @@ import { PlanView } from './views/PlanView';
 import { WorkoutView } from './views/WorkoutView';
 import { ProgressView } from './views/ProgressView';
 import { ProfileView } from './views/ProfileView';
+import { AssistantView } from './views/AssistantView';
 import { AppView } from './types/navigation';
 import { SAMPLE_USER_PROFILES, SAMPLE_PROFILES } from './data/sampleProfiles';
 import { UserProfile } from './types/user';
-import { ActiveWorkoutState } from './types/workout';
+import { Workout, ActiveWorkoutState } from './types/workout';
+import { WorkoutGenerator } from './core/generator/workoutGenerator';
 import { SessionStorageManager } from './core/session/sessionStorage';
 import { ActiveWorkoutModal } from './components/active/ActiveWorkoutModal';
 import { Modal } from './components/ui/Modal';
 import { Button } from './components/ui/Button';
-import { Play, Sparkles, ShieldCheck } from 'lucide-react';
+import { Play, Sparkles, ShieldCheck, HeartPulse, ShieldAlert } from 'lucide-react';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { OfflineBanner } from './components/pwa/OfflineBanner';
+import { PWAUpdateToast } from './components/pwa/PWAUpdateToast';
+import { LegalModal } from './components/legal/LegalModal';
+import { SyncManager } from './core/sync/syncManager';
+import { AnalyticsService } from './core/analytics/analytics';
 
 // Onboarding FASE 3
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
@@ -58,6 +66,14 @@ function FitAdaptApp() {
     saveUserProfileToStorage(updated);
   };
 
+  // Rutina activa gestionada reactivamente (permite aplicar ajustes y alternativas desde FitAdapt AI)
+  const [activeWorkout, setActiveWorkout] = useState<Workout>(() => {
+    return WorkoutGenerator.generate({
+      userProfile: currentUser,
+      seed: 1,
+    }).workout;
+  });
+
   // Modal para acción de "Comenzar Entrenamiento"
   const [showWorkoutModal, setShowWorkoutModal] = useState(false);
 
@@ -66,6 +82,12 @@ function FitAdaptApp() {
     return SessionStorageManager.getActiveState();
   });
   const [isRecoveryActiveModalOpen, setIsRecoveryActiveModalOpen] = useState(false);
+  const [showLegalModal, setShowLegalModal] = useState(false);
+
+  // Inicializar sincronizador de fondo para modo offline (FASE 10)
+  React.useEffect(() => {
+    SyncManager.init();
+  }, []);
 
   // Si está en Onboarding, renderizar experiencia guiada inmersiva
   if (activeView === 'ONBOARDING') {
@@ -74,6 +96,7 @@ function FitAdaptApp() {
         initialProfile={currentUser}
         onComplete={(newProfile) => {
           handleUpdateUser(newProfile);
+          AnalyticsService.logEvent('onboarding_completed', { goal: newProfile.primaryGoal });
           setActiveView('HOME');
         }}
         onCancel={() => setActiveView('HOME')}
@@ -92,6 +115,12 @@ function FitAdaptApp() {
 
       {/* Contenido Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 mb-16 md:mb-0">
+        {/* Banner de Estado de Conectividad Offline / Online (FASE 10) */}
+        <OfflineBanner />
+
+        {/* Notificación de Actualización PWA Disponible */}
+        <PWAUpdateToast />
+
         {/* Banner de Recuperación de Sesión Activa Accidentalmente Interrumpida (FASE 7) */}
         {recoveredActiveState && (
           <div
@@ -171,7 +200,25 @@ function FitAdaptApp() {
           />
         )}
 
-        {activeView === 'WORKOUT' && <WorkoutView user={currentUser} />}
+        {activeView === 'WORKOUT' && (
+          <WorkoutView
+            user={currentUser}
+            activeWorkout={activeWorkout}
+            onWorkoutChange={setActiveWorkout}
+            onConsultAI={() => setActiveView('ASSISTANT')}
+          />
+        )}
+
+        {activeView === 'ASSISTANT' && (
+          <AssistantView
+            user={currentUser}
+            activeWorkout={activeWorkout}
+            onApplyWorkoutChange={(newWorkout) => {
+              setActiveWorkout(newWorkout);
+            }}
+            onNavigate={setActiveView}
+          />
+        )}
 
         {activeView === 'PROGRESS' && <ProgressView user={currentUser} />}
 
@@ -284,18 +331,38 @@ function FitAdaptApp() {
       {/* Footer Sutil */}
       <footer className="border-t border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 py-4 text-xs text-zinc-500 dark:text-zinc-400 hidden md:block">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <span>FitAdapt &copy; {new Date().getFullYear()} — Fitness, Wellness & Tecnología</span>
-          <span className="text-[11px] font-mono">FASE 7: Plan Semanal, Calendario y Entrenamiento Activo</span>
+          <div className="flex items-center gap-3">
+            <span>FitAdapt &copy; {new Date().getFullYear()} — Fitness, Wellness & Biomecánica</span>
+            <span>•</span>
+            <button
+              onClick={() => setShowLegalModal(true)}
+              className="hover:text-teal-600 dark:hover:text-teal-400 underline underline-offset-2 transition-colors cursor-pointer"
+            >
+              Aviso Médico, Privacidad y Términos
+            </button>
+          </div>
+          <span className="text-[11px] font-mono text-teal-600 dark:text-teal-400 font-bold">
+            FASE 10: PWA & PRODUCCIÓN LISTO
+          </span>
         </div>
       </footer>
+
+      {/* Modal Legal, Privacidad y Salud */}
+      <LegalModal
+        isOpen={showLegalModal}
+        onClose={() => setShowLegalModal(false)}
+        onResetAllData={() => window.location.reload()}
+      />
     </div>
   );
 }
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <FitAdaptApp />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <FitAdaptApp />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }

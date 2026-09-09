@@ -47,7 +47,7 @@ export function AITestSuiteModal({ isOpen, onClose }: AITestSuiteModalProps) {
       case 'ALTERNATIVES':
         return <Badge variant="teal">Alternativas</Badge>;
       case 'ADAPTATION':
-        return <Badge variant="primary">Adaptación</Badge>;
+        return <Badge variant="emerald">Adaptación</Badge>;
       case 'EXPLANATION':
         return <Badge variant="neutral">Explicación</Badge>;
       case 'FALLBACK':

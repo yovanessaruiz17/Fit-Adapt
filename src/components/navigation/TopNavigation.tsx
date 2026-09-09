@@ -21,6 +21,7 @@ import {
 import { AppView } from '../../types/navigation';
 import { useTheme } from '../../context/ThemeContext';
 import { Button } from '../ui/Button';
+import { PWAInstallPrompt } from '../pwa/PWAInstallPrompt';
 
 export interface TopNavigationProps {
   activeView: AppView;
@@ -71,7 +72,7 @@ export function TopNavigation({
 
             {/* Selector de fase informativa */}
             <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-              FASE 9: FITADAPT AI
+              FASE 10: PWA & PRODUCCIÓN
             </span>
           </div>
 
@@ -100,8 +101,11 @@ export function TopNavigation({
             })}
           </nav>
 
-          {/* Herramientas derechas: Toggle Dark Mode + Botón Inspector Fase 1 + Perfil */}
+          {/* Herramientas derechas: PWA Install + FitAdapt AI + Toggle Dark Mode + Perfil */}
           <div className="flex items-center gap-2">
+            {/* Botón PWA Install Prompt */}
+            <PWAInstallPrompt variant="header" />
+
             {/* Botón FitAdapt AI (Fase 9) */}
             <button
               id="btn-open-assistant"
