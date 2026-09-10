@@ -12,17 +12,6 @@ FitAdapt es una aplicación web progresiva (**PWA**) de entrenamiento personaliz
 
 ---
 
-## 📌 ¿Tiene Base de Datos el Proyecto?
-
-**NO requiere ninguna base de datos externa (como PostgreSQL, MySQL o Firebase).**
-
-### ¿Cómo se guardan los datos?
-- **Arquitectura Local-First:** Toda la información del usuario (perfil antropométrico, historial articular, rutinas generadas, sesiones completadas, progreso y notas) se almacena directamente en el navegador del usuario utilizando `localStorage`.
-- **Privacidad Total y Offline:** Los datos residen en el dispositivo del usuario, sin transferencias a servidores de terceros ni rastreadores publicitarios. Funciona al 100% sin conexión a internet.
-- **Portabilidad:** Desde la pestaña de **Perfil**, el usuario puede descargar una copia de seguridad en formato `.json` o restaurarla cuando lo desee.
-- **¿Y el Asistente de IA?** El backend ligero (`server.ts`) ofrece un endpoint opcional para conectar con Google Gemini. Si se despliega únicamente como cliente estático o sin clave, el asistente activa automáticamente su **motor de respuestas biomecánicas local**, respondiendo sin requerir servidores externos.
-
----
 
 ## 🚀 Despliegue en Netlify (Paso a Paso)
 
