@@ -275,6 +275,20 @@ export function Step1Welcome({
           </span>
         </div>
       )}
+
+      {/* Autoría y Derechos de Autor */}
+      <div className="pt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
+        <span>Plataforma creada y desarrollada por </span>
+        <a
+          href="https://yordevctg17.netlify.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
+        >
+          Yordev
+        </a>
+        <span> - Yorleidys Ruiz &copy; {new Date().getFullYear()} · Todos los derechos reservados</span>
+      </div>
     </div>
   );
 }

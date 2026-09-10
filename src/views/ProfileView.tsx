@@ -57,7 +57,7 @@ import { LegalModal } from '../components/legal/LegalModal';
 import { ProductionTestModal } from '../components/testing/ProductionTestModal';
 import { PWAInstallPrompt } from '../components/pwa/PWAInstallPrompt';
 import { SyncManager } from '../core/sync/syncManager';
-import { Bell, ShieldCheck, Award, Smartphone, Wifi, WifiOff } from 'lucide-react';
+import { Bell, ShieldCheck, Award, Smartphone, Wifi, WifiOff, ExternalLink } from 'lucide-react';
 
 export interface ProfileViewProps {
   user: UserProfile;
@@ -769,6 +769,44 @@ export function ProfileView({
                 {syncStatus.isOnline ? 'Conectado a Internet' : 'Modo Offline Activo'}
               </Badge>
             </div>
+          </div>
+
+          {/* Autoría y Derechos de Autor */}
+          <div className="p-4 rounded-xl bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-transparent border border-teal-200 dark:border-teal-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black text-sm shrink-0">
+                YR
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="font-bold text-zinc-900 dark:text-zinc-100 text-sm">
+                    Autoría y Derechos de Autor:
+                  </span>
+                  <a
+                    href="https://yordevctg17.netlify.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-black text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-1 text-sm"
+                  >
+                    <span>Yordev</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                  <span className="text-zinc-700 dark:text-zinc-300 font-semibold">- Yorleidys Ruiz</span>
+                </div>
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  &copy; {new Date().getFullYear()} Todos los derechos reservados · Arquitectura Local-First & Motor Biomecánico.
+                </p>
+              </div>
+            </div>
+            <a
+              href="https://yordevctg17.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 font-semibold text-xs transition inline-flex items-center justify-center gap-1 shrink-0"
+            >
+              <span>Ver Portafolio de Yordev</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
           </div>
         </div>
       )}

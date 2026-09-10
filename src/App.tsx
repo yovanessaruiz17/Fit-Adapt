@@ -354,12 +354,23 @@ function FitAdaptApp() {
         </div>
       </Modal>
 
-      {/* Footer Sutil */}
-      <footer className="border-t border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 py-4 text-xs text-zinc-500 dark:text-zinc-400 hidden md:block">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span>FitAdapt &copy; {new Date().getFullYear()} — Fitness, Wellness & Biomecánica</span>
-            <span>•</span>
+      {/* Footer con Autoría y Derechos de Autor */}
+      <footer className="border-t border-zinc-200/80 dark:border-zinc-800/80 bg-white dark:bg-zinc-900 py-4 pb-24 md:pb-4 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 text-center sm:text-left">
+            <span>
+              &copy; {new Date().getFullYear()} FitAdapt · Autoría y derechos de autor:{' '}
+              <a
+                href="https://yordevctg17.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
+              >
+                Yordev
+              </a>{' '}
+              - Yorleidys Ruiz
+            </span>
+            <span className="hidden sm:inline">•</span>
             <button
               onClick={() => setShowLegalModal(true)}
               className="hover:text-teal-600 dark:hover:text-teal-400 underline underline-offset-2 transition-colors cursor-pointer"
@@ -367,9 +378,17 @@ function FitAdaptApp() {
               Aviso Médico, Privacidad y Términos
             </button>
           </div>
-          <span className="text-[11px] font-mono text-teal-600 dark:text-teal-400 font-bold">
-            FASE 10: PWA & PRODUCCIÓN LISTO
-          </span>
+          <div className="flex items-center gap-2 text-[11px]">
+            <a
+              href="https://yordevctg17.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 font-medium hover:bg-teal-100 transition"
+            >
+              Creado por Yordev
+            </a>
+            <span className="font-mono text-zinc-400 dark:text-zinc-500">v1.0 PWA</span>
+          </div>
         </div>
       </footer>
 

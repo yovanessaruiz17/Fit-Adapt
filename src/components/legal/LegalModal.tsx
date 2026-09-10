@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { ShieldCheck, FileText, AlertTriangle, Trash2, Download, CheckCircle2 } from 'lucide-react';
+import { ShieldCheck, FileText, AlertTriangle, Trash2, Download, CheckCircle2, UserCheck, ExternalLink } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 
 interface LegalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultTab?: 'terms' | 'privacy' | 'health' | 'data';
+  defaultTab?: 'terms' | 'privacy' | 'health' | 'data' | 'author';
   onResetAllData?: () => void;
 }
 
@@ -16,7 +16,7 @@ export const LegalModal: React.FC<LegalModalProps> = ({
   defaultTab = 'health',
   onResetAllData,
 }) => {
-  const [activeTab, setActiveTab] = useState<'terms' | 'privacy' | 'health' | 'data'>(defaultTab);
+  const [activeTab, setActiveTab] = useState<'terms' | 'privacy' | 'health' | 'data' | 'author'>(defaultTab);
   const [confirmReset, setConfirmReset] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
 
@@ -120,6 +120,18 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             <Trash2 className="w-3.5 h-3.5 text-red-500" />
             Control de Datos
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('author')}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-lg shrink-0 flex items-center gap-1.5 transition ${
+              activeTab === 'author'
+                ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-200'
+                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
+            }`}
+          >
+            <UserCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            Autoría & Copyright
+          </button>
         </div>
 
         {/* Tab 1: Health Disclaimer */}
@@ -192,6 +204,20 @@ export const LegalModal: React.FC<LegalModalProps> = ({
             <h5 className="font-semibold text-zinc-900 dark:text-zinc-100">3. Disponibilidad</h5>
             <p>
               Como PWA, las funciones esenciales continúan operando sin conexión a internet. Los servicios externos de IA dependen de conectividad activa.
+            </p>
+            <h5 className="font-semibold text-zinc-900 dark:text-zinc-100">4. Derechos de Autor y Propiedad Intelectual</h5>
+            <p>
+              Todo el diseño, código, arquitectura y algoritmos de FitAdapt son propiedad intelectual exclusiva de{' '}
+              <a
+                href="https://yordevctg17.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
+              >
+                <span>Yordev</span>
+                <ExternalLink className="w-3 h-3 inline" />
+              </a>{' '}
+              - Yorleidys Ruiz &copy; {new Date().getFullYear()}. Todos los derechos reservados.
             </p>
           </div>
         )}
@@ -267,8 +293,78 @@ export const LegalModal: React.FC<LegalModalProps> = ({
           </div>
         )}
 
-        <div className="pt-2 border-t border-zinc-200 dark:border-zinc-700 flex justify-end">
-          <Button variant="primary" size="sm" onClick={onClose} className="text-xs">
+        {/* Tab 5: Authorship and Copyright */}
+        {activeTab === 'author' && (
+          <div className="space-y-4 animate-fadeIn text-xs">
+            <div className="p-4 rounded-xl bg-gradient-to-br from-teal-500/10 via-emerald-500/10 to-transparent border border-teal-200 dark:border-teal-800 space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black text-sm shadow-xs shrink-0">
+                  YR
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-50">
+                    <a
+                      href="https://yordevctg17.netlify.app/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-1 font-black"
+                    >
+                      <span>Yordev</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>{' '}
+                    - Yorleidys Ruiz
+                  </h4>
+                  <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block">
+                    Desarrolladora de Software & Creadora de FitAdapt
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed text-xs">
+                FitAdapt fue concebido, diseñado y programado en su totalidad por <strong>Yorleidys Ruiz (Yordev)</strong>, implementando una arquitectura <em>Local-First</em> para la preservación de la privacidad y motores de reglas deterministas para la prevención biomecánica de lesiones deportivas.
+              </p>
+
+              <div className="pt-2 border-t border-teal-200/60 dark:border-teal-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-[11px] text-zinc-600 dark:text-zinc-400">
+                  Sitio web & Portafolio oficial:
+                </span>
+                <a
+                  href="https://yordevctg17.netlify.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs font-bold text-teal-700 dark:text-teal-300 hover:underline inline-flex items-center gap-1"
+                >
+                  <span>https://yordevctg17.netlify.app/</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 space-y-1.5">
+              <span className="font-bold text-zinc-800 dark:text-zinc-200 block text-xs">
+                Declaración de Derechos de Autor
+              </span>
+              <p className="text-zinc-500 dark:text-zinc-400 text-[11px] leading-relaxed">
+                Todos los derechos de autor, patentes de diseño de interfaz, marcas y código de la plataforma están reservados a nombre de <strong>Yorleidys Ruiz (Yordev)</strong> &copy; {new Date().getFullYear()}.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="pt-3 border-t border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+          <div>
+            <span>Autoría: </span>
+            <a
+              href="https://yordevctg17.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-bold text-teal-600 dark:text-teal-400 hover:underline"
+            >
+              Yordev
+            </a>
+            <span> - Yorleidys Ruiz &copy; {new Date().getFullYear()}</span>
+          </div>
+          <Button variant="primary" size="sm" onClick={onClose} className="text-xs shrink-0 self-end sm:self-auto">
             Cerrar
           </Button>
         </div>

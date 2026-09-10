@@ -281,9 +281,23 @@ export function TopNavigation({
             )}
           </div>
 
-          <div className="pt-2 flex items-center justify-between text-[11px] text-zinc-400 dark:text-zinc-500">
-            <span>FitAdapt · Versión 1.0.0 PWA</span>
-            <span className="font-mono">Local-First</span>
+          <div className="pt-2 border-t border-zinc-200/60 dark:border-zinc-800/60 flex flex-col gap-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center justify-between">
+              <span>FitAdapt · Versión 1.0.0 PWA</span>
+              <span className="font-mono text-teal-600 dark:text-teal-400 font-semibold">Local-First</span>
+            </div>
+            <div>
+              <span>Autoría y derechos: </span>
+              <a
+                href="https://yordevctg17.netlify.app/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-bold text-teal-600 dark:text-teal-400 hover:underline inline-flex items-center gap-0.5"
+              >
+                Yordev
+              </a>
+              <span> - Yorleidys Ruiz</span>
+            </div>
           </div>
         </div>
       )}
