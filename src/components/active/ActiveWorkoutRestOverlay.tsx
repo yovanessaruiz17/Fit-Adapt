@@ -36,32 +36,47 @@ export function ActiveWorkoutRestOverlay({
 }: ActiveWorkoutRestOverlayProps) {
   const [secondsRemaining, setSecondsRemaining] = useState<number>(restSeconds);
   const [isPaused, setIsPaused] = useState<boolean>(false);
-  const timerRef = useRef<number | null>(null);
+  const endTimeRef = useRef<number>(Date.now() + restSeconds * 1000);
+  const onFinishRestRef = useRef(onFinishRest);
+
+  useEffect(() => {
+    onFinishRestRef.current = onFinishRest;
+  }, [onFinishRest]);
 
   useEffect(() => {
     setSecondsRemaining(restSeconds);
     setIsPaused(false);
+    endTimeRef.current = Date.now() + restSeconds * 1000;
   }, [restSeconds]);
 
+  // Ciclo de descanso de alta precisión
   useEffect(() => {
-    if (!isPaused && secondsRemaining > 0) {
-      timerRef.current = window.setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            onFinishRest();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+    if (isPaused) return;
+
+    endTimeRef.current = Date.now() + secondsRemaining * 1000;
+
+    const interval = window.setInterval(() => {
+      const now = Date.now();
+      const remainingMs = endTimeRef.current - now;
+      const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+
+      setSecondsRemaining(remainingSec);
+
+      if (remainingSec <= 0) {
+        window.clearInterval(interval);
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate([100, 50, 100]);
+          } catch {}
+        }
+        onFinishRestRef.current();
+      }
+    }, 150);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      window.clearInterval(interval);
     };
-  }, [isPaused, secondsRemaining, onFinishRest]);
+  }, [isPaused]);
 
   const formatTime = (totalSec: number) => {
     const mins = Math.floor(totalSec / 60);
@@ -70,10 +85,21 @@ export function ActiveWorkoutRestOverlay({
   };
 
   const handleTogglePause = () => {
-    setIsPaused(!isPaused);
+    if (!isPaused) {
+      // Pausar: guardar segundos restantes
+      const now = Date.now();
+      const remaining = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
+      setSecondsRemaining(remaining);
+      setIsPaused(true);
+    } else {
+      // Reanudar
+      endTimeRef.current = Date.now() + secondsRemaining * 1000;
+      setIsPaused(false);
+    }
   };
 
   const handleAddSeconds = (extra: number) => {
+    endTimeRef.current += extra * 1000;
     setSecondsRemaining((prev) => prev + extra);
   };
 

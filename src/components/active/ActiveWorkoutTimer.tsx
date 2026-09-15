@@ -22,37 +22,57 @@ export function ActiveWorkoutTimer({
   const [isRunning, setIsRunning] = useState<boolean>(autoStart);
   const [hasFinished, setHasFinished] = useState<boolean>(false);
 
-  const timerRef = useRef<number | null>(null);
+  const endTimeRef = useRef<number>(Date.now() + targetSeconds * 1000);
+  const onCompleteRef = useRef(onComplete);
+
+  // Mantener referencia actualizada de la función onComplete sin recrear intervalos
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   // Reiniciar temporizador si cambia el objetivo de ejercicio
   useEffect(() => {
     setSecondsRemaining(targetSeconds);
     setIsRunning(autoStart);
     setHasFinished(false);
+    endTimeRef.current = Date.now() + targetSeconds * 1000;
   }, [targetSeconds, autoStart]);
 
-  // Ciclo del temporizador
+  // Ciclo del temporizador de ALTA PRECISIÓN basado en reloj del sistema
+  // Resuelve el problema de que el cronómetro se vuelva lento o se trabe por re-renderizados
   useEffect(() => {
-    if (isRunning && secondsRemaining > 0) {
-      timerRef.current = window.setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            setHasFinished(true);
-            onComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
-    }
+    if (!isRunning) return;
+
+    // Fijar el timestamp exacto en el que debe finalizar
+    endTimeRef.current = Date.now() + secondsRemaining * 1000;
+
+    const interval = window.setInterval(() => {
+      const now = Date.now();
+      const remainingMs = endTimeRef.current - now;
+      const remainingSec = Math.max(0, Math.ceil(remainingMs / 1000));
+
+      setSecondsRemaining(remainingSec);
+
+      if (remainingSec <= 0) {
+        setIsRunning(false);
+        setHasFinished(true);
+        window.clearInterval(interval);
+        
+        // Señal háptica de vibración en dispositivos compatibles
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate([150, 80, 150]);
+          } catch {}
+        }
+
+        onCompleteRef.current();
+      }
+    }, 150);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      window.clearInterval(interval);
     };
-  }, [isRunning, secondsRemaining, onComplete]);
+  }, [isRunning]);
 
   // Formato mm:ss
   const formatTime = (totalSec: number) => {
@@ -68,11 +88,19 @@ export function ActiveWorkoutTimer({
   );
 
   const handleStart = () => {
+    const current = secondsRemaining > 0 ? secondsRemaining : targetSeconds;
+    if (secondsRemaining <= 0) {
+      setSecondsRemaining(targetSeconds);
+    }
+    endTimeRef.current = Date.now() + current * 1000;
     setIsRunning(true);
     setHasFinished(false);
   };
 
   const handlePause = () => {
+    const now = Date.now();
+    const remainingSec = Math.max(0, Math.ceil((endTimeRef.current - now) / 1000));
+    setSecondsRemaining(remainingSec);
     setIsRunning(false);
   };
 
@@ -80,9 +108,11 @@ export function ActiveWorkoutTimer({
     setIsRunning(false);
     setSecondsRemaining(targetSeconds);
     setHasFinished(false);
+    endTimeRef.current = Date.now() + targetSeconds * 1000;
   };
 
   const handleAddSeconds = (extra: number) => {
+    endTimeRef.current += extra * 1000;
     setSecondsRemaining((prev) => prev + extra);
     setHasFinished(false);
   };

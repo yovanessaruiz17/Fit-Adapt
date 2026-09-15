@@ -31,6 +31,7 @@ import { WorkoutExercise, WorkoutStructureSection } from '../../types/workout';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { getExerciseById } from '../../data/exerciseLibrary';
+import { ExercisePostureVisualizer } from '../exercise/ExercisePostureVisualizer';
 
 export interface WorkoutExerciseRowProps {
   key?: React.Key;
@@ -134,51 +135,19 @@ export function WorkoutExerciseRow({ item, onSubstitute }: WorkoutExerciseRowPro
         {/* Detalles expandidos */}
         {isExpanded && (
           <div className="mt-4 pt-4 border-t border-zinc-200/80 dark:border-zinc-800 space-y-4 animate-fadeIn text-xs sm:text-sm">
-            {/* Descripción general */}
-            <p className="text-zinc-600 dark:text-zinc-300 leading-relaxed">
-              {exercise.description}
-            </p>
-
-            {/* Equipamiento */}
-            <div className="flex items-center gap-2">
-              <Dumbbell className="w-4 h-4 text-zinc-500" />
-              <span className="font-semibold text-zinc-700 dark:text-zinc-300">Equipamiento: </span>
-              <span className="text-zinc-600 dark:text-zinc-400">
-                {exercise.equipment && exercise.equipment.length > 0
-                  ? exercise.equipment.join(', ')
-                  : 'Ninguno (Peso corporal)'}
-              </span>
-            </div>
-
-            {/* Instrucciones paso a paso */}
-            {exercise.instructions && exercise.instructions.length > 0 && (
-              <div className="space-y-1.5">
-                <span className="font-semibold text-zinc-900 dark:text-zinc-100 block">
-                  Instrucciones técnicas de ejecución:
-                </span>
-                <ol className="list-decimal list-inside space-y-1 text-zinc-600 dark:text-zinc-400 pl-1">
-                  {exercise.instructions.map((step, idx) => (
-                    <li key={idx} className="leading-relaxed">
-                      <strong className="font-semibold text-zinc-800 dark:text-zinc-200">{step.title}:</strong> {step.description}
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-
-            {/* Errores comunes a evitar */}
-            {exercise.commonMistakes && exercise.commonMistakes.length > 0 && (
-              <div className="p-3 rounded-xl bg-zinc-100/80 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60 space-y-1">
-                <span className="font-semibold text-zinc-800 dark:text-zinc-200 block">
-                  Errores comunes a evitar:
-                </span>
-                <ul className="list-disc list-inside space-y-0.5 text-zinc-600 dark:text-zinc-400">
-                  {exercise.commonMistakes.map((mistake, idx) => (
-                    <li key={idx}>{mistake}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {/* Visualizador Biomecánico de Postura, Técnica y Adaptación Casera Sin Pesas */}
+            <ExercisePostureVisualizer
+              exerciseId={exercise.id}
+              exerciseName={exercise.name}
+              category={exercise.category}
+              bodyArea={exercise.bodyArea}
+              movementType={exercise.movementType}
+              primaryMuscle={exercise.primaryMuscle}
+              instructions={exercise.instructions}
+              commonMistakes={exercise.commonMistakes}
+              isAdapted={item.wasAdapted}
+              requiredEquipment={exercise.equipment}
+            />
 
             {/* Barra de alternativa y sustitución */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2">

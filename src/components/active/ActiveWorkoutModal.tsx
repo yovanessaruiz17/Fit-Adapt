@@ -36,6 +36,7 @@ import { UserProfile } from '../../types/user';
 import { getExerciseById } from '../../data/exerciseLibrary';
 import { SessionStorageManager } from '../../core/session/sessionStorage';
 import { ExerciseIllustrationPlaceholder } from './ExerciseIllustrationPlaceholder';
+import { ExercisePostureVisualizer } from '../exercise/ExercisePostureVisualizer';
 import { ActiveWorkoutTimer } from './ActiveWorkoutTimer';
 import { ActiveWorkoutRestOverlay } from './ActiveWorkoutRestOverlay';
 import { ActiveWorkoutCompletion } from './ActiveWorkoutCompletion';
@@ -80,6 +81,10 @@ export function ActiveWorkoutModal({
   const [isPausedModalOpen, setIsPausedModalOpen] = useState<boolean>(false);
   const [isWorkoutFinished, setIsWorkoutFinished] = useState<boolean>(false);
   const [finalSessionData, setFinalSessionData] = useState<WorkoutSession | null>(null);
+
+  // Modo de temporizador para ejercicios de repeticiones (si el usuario desea cronometrar su serie)
+  const [useRepTimer, setUseRepTimer] = useState<boolean>(false);
+  const [repTimerSeconds, setRepTimerSeconds] = useState<number>(30);
 
   // Contador global de tiempo transcurrido (en segundos)
   const [elapsedSeconds, setElapsedSeconds] = useState<number>(
@@ -433,54 +438,95 @@ export function ActiveWorkoutModal({
               )}
             </div>
 
-            {/* Demostración / Placeholder Visual */}
-            <ExerciseIllustrationPlaceholder
+            {/* Demostración Visual de Postura, Técnica y Adaptación Casera */}
+            <ExercisePostureVisualizer
+              exerciseId={currentItem.exerciseId}
               exerciseName={currentItem.exerciseSnapshot?.name || currentItem.exerciseId}
-              category={currentExerciseData?.category || 'FUERZA_GENERAL' as any}
+              category={currentExerciseData?.category}
               bodyArea={currentExerciseData?.bodyArea}
               movementType={currentExerciseData?.movementType}
               primaryMuscle={currentExerciseData?.primaryMuscle as string}
+              instructions={currentExerciseData?.instructions}
+              commonMistakes={currentExerciseData?.commonMistakes}
               isAdapted={currentItem.wasAdapted}
+              requiredEquipment={currentExerciseData?.equipment}
             />
 
-            {/* Dosificación: Temporizador o Repeticiones */}
-            {isTimeBased ? (
-              <ActiveWorkoutTimer
-                targetSeconds={currentItem.targetDurationSeconds || 30}
-                onComplete={handleCompleteSet}
-                autoStart={false}
-              />
-            ) : (
-              <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-zinc-800 text-center space-y-2">
-                <span className="text-xs uppercase font-bold text-zinc-400 tracking-wider">
-                  Objetivo de Repeticiones
-                </span>
-                <div className="text-4xl sm:text-5xl font-black text-teal-400 font-mono">
-                  {typeof currentItem.targetReps === 'object' && currentItem.targetReps !== null
-                    ? `${(currentItem.targetReps as { min: number; max: number }).min} - ${(currentItem.targetReps as { min: number; max: number }).max}`
-                    : String(currentItem.targetReps || 12)}
+            {/* Dosificación: Temporizador o Repeticiones con Selector de Modo */}
+            <div className="space-y-3">
+              {/* Botón de alternancia de modo (Reps vs Cronómetro) para ejercicios de repeticiones */}
+              {!isTimeBased && (
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-xs font-semibold text-zinc-400">
+                    Modo de seguimiento:
+                  </span>
+                  <div className="flex items-center gap-1 bg-zinc-800/90 p-1 rounded-xl border border-zinc-700">
+                    <button
+                      type="button"
+                      onClick={() => setUseRepTimer(false)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                        !useRepTimer ? 'bg-teal-500 text-zinc-950 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      Por Reps
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUseRepTimer(true)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 ${
+                        useRepTimer ? 'bg-teal-500 text-zinc-950 shadow-xs' : 'text-zinc-400 hover:text-zinc-200'
+                      }`}
+                    >
+                      <Clock className="w-3 h-3" />
+                      <span>Cronómetro ({repTimerSeconds}s)</span>
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs text-zinc-400">
-                  Rango objetivo para la serie {currentSetIndex} de {totalSetsForCurrent}
-                </p>
-              </div>
-            )}
+              )}
 
-            {/* Instrucciones Técnicas y Pautas */}
-            {currentExerciseData?.instructions && currentExerciseData.instructions.length > 0 && (
-              <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800 space-y-2 text-xs">
-                <span className="font-bold text-zinc-300 block uppercase tracking-wider text-[10px]">
-                  Pautas Técnicas de Ejecución:
-                </span>
-                <ul className="space-y-1.5 text-zinc-400 pl-1">
-                  {currentExerciseData.instructions.map((inst, i) => (
-                    <li key={i} className="leading-relaxed">
-                      <strong className="text-zinc-200">{inst.title}:</strong> {inst.description}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+              {isTimeBased || useRepTimer ? (
+                <div className="space-y-2">
+                  <ActiveWorkoutTimer
+                    targetSeconds={isTimeBased ? (currentItem.targetDurationSeconds || 30) : repTimerSeconds}
+                    onComplete={handleCompleteSet}
+                    autoStart={false}
+                  />
+                  {useRepTimer && !isTimeBased && (
+                    <div className="flex items-center justify-center gap-2 pt-1">
+                      <span className="text-[11px] text-zinc-400">Duración de serie:</span>
+                      {[20, 30, 45, 60].map((sec) => (
+                        <button
+                          key={sec}
+                          type="button"
+                          onClick={() => setRepTimerSeconds(sec)}
+                          className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold transition ${
+                            repTimerSeconds === sec
+                              ? 'bg-teal-500 text-zinc-950'
+                              : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700'
+                          }`}
+                        >
+                          {sec}s
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-4 sm:p-5 rounded-2xl bg-zinc-900 border border-zinc-800 text-center space-y-2">
+                  <span className="text-xs uppercase font-bold text-zinc-400 tracking-wider">
+                    Objetivo de Repeticiones
+                  </span>
+                  <div className="text-4xl sm:text-5xl font-black text-teal-400 font-mono">
+                    {typeof currentItem.targetReps === 'object' && currentItem.targetReps !== null
+                      ? `${(currentItem.targetReps as { min: number; max: number }).min} - ${(currentItem.targetReps as { min: number; max: number }).max}`
+                      : String(currentItem.targetReps || 12)}
+                  </div>
+                  <p className="text-xs text-zinc-400">
+                    Rango objetivo para la serie {currentSetIndex} de {totalSetsForCurrent}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>
